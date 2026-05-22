@@ -14,6 +14,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.processor.aggregate.jdbc.JdbcAggregationRepository;
+import org.apache.camel.util.concurrent.SynchronousExecutorService;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.apache.camel.builder.endpoint.StaticEndpointBuilders.jms;
@@ -52,6 +53,7 @@ public class MyRoute extends RouteBuilder {
         .aggregate(header("refId"), new SumAggregationStrategy())
                 .aggregationRepository(aggregationRepository())
                 .completionPredicate(header("isLast").isEqualTo(true))
+                .executorService(new SynchronousExecutorService())
             .convertBodyTo(String.class)
             .to(jms("queue:out")
                 .connectionFactory(connectionFactory())
