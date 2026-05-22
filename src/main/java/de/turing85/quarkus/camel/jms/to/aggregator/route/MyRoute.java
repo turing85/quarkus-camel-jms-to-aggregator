@@ -63,6 +63,7 @@ public class MyRoute extends RouteBuilder {
 
     from(direct(OUT_ROUTE_ID))
         .routeId(OUT_ROUTE_ID)
+        .transacted()
         .to(jms("queue:out")
             .connectionFactory(connectionFactory())
             .advanced()
