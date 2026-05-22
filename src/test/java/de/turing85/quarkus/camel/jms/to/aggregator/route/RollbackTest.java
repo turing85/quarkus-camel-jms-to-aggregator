@@ -22,7 +22,7 @@ class RollbackTest extends TestBase {
   @Test
   void rollbackTest() throws Exception {
     // GIVEN
-    AdviceWith.adviceWith(camelContext, MyRoute.IN_ROUTE_ID,
+    AdviceWith.adviceWith(camelContext, MyRoute.OUT_ROUTE_ID,
         route -> route.weaveAddLast().id("thrower").filter(header("isLast").isEqualTo(true))
             .throwException(new RuntimeException("Rollback test")).end());
     final String refId = "1337";
