@@ -36,8 +36,10 @@ class MyRouteTest extends TestBase {
     assertEntriesInCamelAggregationForRefIdEquals(refId, 0);
 
     try (final JMSContext context = connectionFactory().createContext();
-        final JMSConsumer inConsumer = context.createConsumer(context.createQueue(TestBase.IN_QUEUE));
-        final JMSConsumer outConsumer = context.createConsumer(context.createQueue(TestBase.OUT_QUEUE))) {
+        final JMSConsumer inConsumer =
+            context.createConsumer(context.createQueue(TestBase.IN_QUEUE));
+        final JMSConsumer outConsumer =
+            context.createConsumer(context.createQueue(TestBase.OUT_QUEUE))) {
 
       Assertions.assertNull(inConsumer.receive(Duration.ofSeconds(1).toMillis()));
 
