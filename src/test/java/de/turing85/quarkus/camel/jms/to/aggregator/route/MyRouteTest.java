@@ -19,6 +19,7 @@ class MyRouteTest extends TestBase {
 
   @Test
   void goodTest() throws Exception {
+    // GIVEN
     final String refId = "666";
 
     // WHEN
