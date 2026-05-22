@@ -30,10 +30,10 @@ class RollbackTest extends TestBase {
     // WHEN
     try (final JMSContext context = connectionFactory().createContext()) {
       final JMSProducer producer = context.createProducer();
-      producer.send(context.createQueue("in::in"), createTextMessage(context, "1", refId));
+      producer.send(context.createQueue(TestBase.IN_QUEUE), createTextMessage(context, "1", refId));
       final TextMessage finalMessage = createTextMessage(context, "2", refId);
       finalMessage.setBooleanProperty("isLast", true);
-      producer.send(context.createQueue("in::in"), finalMessage);
+      producer.send(context.createQueue(TestBase.IN_QUEUE), finalMessage);
     }
 
     // THEN
@@ -41,8 +41,8 @@ class RollbackTest extends TestBase {
     assertEntriesInCamelAggregationForRefIdEquals(refId, 1);
 
     try (final JMSContext context = connectionFactory().createContext();
-        final JMSConsumer inConsumer = context.createConsumer(context.createQueue("in::in"));
-        final JMSConsumer outConsumer = context.createConsumer(context.createQueue("out::out"))) {
+        final JMSConsumer inConsumer = context.createConsumer(context.createQueue(TestBase.IN_QUEUE));
+        final JMSConsumer outConsumer = context.createConsumer(context.createQueue(TestBase.OUT_QUEUE))) {
 
       final Message inMessage = inConsumer.receive(Duration.ofSeconds(1).toMillis());
       Assertions.assertNotNull(inMessage);

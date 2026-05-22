@@ -26,6 +26,9 @@ import org.junit.jupiter.api.Assertions;
 
 @Getter(AccessLevel.PROTECTED)
 class TestBase extends CamelQuarkusTestSupport {
+  public static final String IN_QUEUE = "in::in";
+  public static final String OUT_QUEUE = "out::out";
+
   @Inject
   @SuppressWarnings("CdiInjectionPointsInspection")
   ConnectionFactory connectionFactory;
@@ -39,7 +42,7 @@ class TestBase extends CamelQuarkusTestSupport {
 
   @AfterEach
   void teardown() throws Exception {
-    cleanupQueues(List.of("in::in", "out::out"));
+    cleanupQueues(List.of(IN_QUEUE, OUT_QUEUE));
     cleanupTables(List.of("camel_aggregation", "camel_aggregation_completed"));
     camelContext.getRouteController().reloadAllRoutes();
   }
