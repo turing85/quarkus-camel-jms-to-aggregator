@@ -17,13 +17,16 @@ import org.apache.camel.processor.aggregate.jdbc.JdbcAggregationRepository;
 import org.apache.camel.util.concurrent.SynchronousExecutorService;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import static org.apache.camel.builder.endpoint.StaticEndpointBuilders.direct;
 import static org.apache.camel.builder.endpoint.StaticEndpointBuilders.jms;
 
 @Singleton
 @RequiredArgsConstructor
 @Getter(AccessLevel.PRIVATE)
 public class MyRoute extends RouteBuilder {
-  public static final String ROUTE_ID = "in-route";
+  public static final String IN_ROUTE_ID = "in-route";
+  public static final String OUT_ROUTE_ID = "out-route";
+
   private final ConnectionFactory connectionFactory;
   private final PlatformTransactionManager transactionManager;
   private final JdbcAggregationRepository aggregationRepository;
@@ -48,18 +51,22 @@ public class MyRoute extends RouteBuilder {
             .connectionFactory(connectionFactory())
             .advanced()
                 .transactionManager(transactionManager()))
-        .id(ROUTE_ID)
+        .routeId(IN_ROUTE_ID)
         .log(LoggingLevel.DEBUG, "Received: ${body}, refId: ${headers.refId}, isLast: ${headers.isLast}")
         .aggregate(header("refId"), new SumAggregationStrategy())
                 .aggregationRepository(aggregationRepository())
                 .completionPredicate(header("isLast").isEqualTo(true))
                 .executorService(new SynchronousExecutorService())
             .convertBodyTo(String.class)
-            .to(jms("queue:out")
-                .connectionFactory(connectionFactory())
-                .advanced()
-                    .transactionManager(transactionManager()))
+            .to(direct(OUT_ROUTE_ID))
         .end();
+
+    from(direct(OUT_ROUTE_ID))
+        .routeId(OUT_ROUTE_ID)
+        .to(jms("queue:out")
+            .connectionFactory(connectionFactory())
+            .advanced()
+                .transactionManager(transactionManager()));
     // @formatter:on
   }
 }
