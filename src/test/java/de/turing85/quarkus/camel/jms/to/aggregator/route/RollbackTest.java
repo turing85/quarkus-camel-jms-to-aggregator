@@ -24,7 +24,7 @@ class RollbackTest extends TestBase {
     // GIVEN
     AdviceWith.adviceWith(camelContext, MyRoute.OUT_ROUTE_ID,
         route -> route.weaveAddLast().id("thrower").filter(header("isLast").isEqualTo(true))
-            .throwException(new RuntimeException("Rollback test")).end());
+            .throwException(new RuntimeException("artificial exception")).end());
     final String refId = "1337";
 
     // WHEN
@@ -37,8 +37,11 @@ class RollbackTest extends TestBase {
     }
 
     // THEN
-    Thread.sleep(Duration.ofSeconds(5).toMillis());
-    assertEntriesInCamelAggregationForRefIdEquals(refId, 1);
+    Duration timeout = Duration.ofSeconds(10);
+    awaitHealthDown(timeout);
+
+    assertEntriesInCamelAggregationForRefId(refId, 1);
+    assertEntriesInCamelAggregationCompleted(0);
 
     try (final JMSContext context = connectionFactory().createContext();
         final JMSConsumer inConsumer =

@@ -14,19 +14,24 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
+import jakarta.ws.rs.core.Response;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.artemis.test.ArtemisTestResource;
 import io.quarkus.logging.Log;
 import io.quarkus.test.common.WithTestResource;
+import io.restassured.RestAssured;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.camel.CamelContext;
 import org.apache.camel.quarkus.test.CamelQuarkusTestSupport;
-import org.junit.jupiter.api.AfterEach;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 
 @WithTestResource(ArtemisTestResource.class)
+@RequiredArgsConstructor
 @Getter(AccessLevel.PROTECTED)
 class TestBase extends CamelQuarkusTestSupport {
   public static final String IN_QUEUE = "in::in";
@@ -43,11 +48,11 @@ class TestBase extends CamelQuarkusTestSupport {
   @SuppressWarnings("CdiInjectionPointsInspection")
   AgroalDataSource dataSource;
 
-  @AfterEach
-  void teardown() throws Exception {
+  @BeforeEach
+  void teardown() {
     cleanupQueues(List.of(IN_QUEUE, OUT_QUEUE));
     cleanupTables(List.of("camel_aggregation", "camel_aggregation_completed"));
-    camelContext.getRouteController().reloadAllRoutes();
+    awaitHealthUp(Duration.ofSeconds(10));
   }
 
   private void cleanupQueues(final List<String> queues) {
@@ -86,24 +91,63 @@ class TestBase extends CamelQuarkusTestSupport {
     return textMessage;
   }
 
-  protected void assertEntriesInCamelAggregationForRefIdEquals(String refId, int expectedCount) {
-    final String sql = "SELECT * FROM camel_aggregation WHERE id = ?";
+  protected static void awaitHealthDown(Duration timeout) {
+    // @formatter:off
+    Awaitility.await()
+        .atMost(timeout)
+        .untilAsserted(() -> RestAssured
+            .when().get("/q/health")
+            .then().statusCode(Response.Status.SERVICE_UNAVAILABLE.getStatusCode()));
+    // @formatter:on
+  }
+
+  protected static void awaitHealthUp(Duration timeout) {
+    // @formatter:off
+    Awaitility.await()
+        .atMost(timeout)
+        .untilAsserted(() -> RestAssured
+            .when().get("/q/health")
+            .then().statusCode(Response.Status.OK.getStatusCode()));
+    // @formatter:on
+  }
+
+  protected void assertEntriesInCamelAggregationCompleted(int expectedCount) {
+    final String sql = "SELECT COUNT(*) AS count FROM camel_aggregation_completed";
 
     try (final Connection connection = dataSource().getConnection();
         final PreparedStatement statement = connection.prepareStatement(sql)) {
 
-      statement.setString(1, refId);
-
-      int count = 0;
+      final int count;
       try (final ResultSet resultSet = statement.executeQuery()) {
-        while (resultSet.next()) {
-          ++count;
+        if (resultSet.next()) {
+          count = resultSet.getInt("count");
+        } else {
+          count = 0;
         }
       }
-
       Assertions.assertEquals(expectedCount, count);
     } catch (SQLException e) {
-      // Handle or log your database exceptions cleanly here
+      throw new RuntimeException("Database query failed", e);
+    }
+  }
+
+  protected void assertEntriesInCamelAggregationForRefId(String refId, int expectedCount) {
+    final String sql = "SELECT COUNT(*) AS count FROM camel_aggregation WHERE id = ?";
+
+    try (final Connection connection = dataSource().getConnection();
+        final PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setString(1, refId);
+
+      final int count;
+      try (final ResultSet resultSet = statement.executeQuery()) {
+        if (resultSet.next()) {
+          count = resultSet.getInt("count");
+        } else {
+          count = 0;
+        }
+      }
+      Assertions.assertEquals(expectedCount, count);
+    } catch (SQLException e) {
       throw new RuntimeException("Database query failed", e);
     }
   }

@@ -10,13 +10,13 @@ import jakarta.jms.TextMessage;
 
 import io.quarkus.test.junit.QuarkusTest;
 import lombok.Getter;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @Getter
 class MyRouteTest extends TestBase {
-
   @Test
   void goodTest() throws Exception {
     // GIVEN
@@ -32,8 +32,12 @@ class MyRouteTest extends TestBase {
     }
 
     // THEN
-    Thread.sleep(Duration.ofSeconds(5).toMillis());
-    assertEntriesInCamelAggregationForRefIdEquals(refId, 0);
+    // @formatter:off
+    Awaitility.await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() -> assertEntriesInCamelAggregationCompleted(1));
+    // @formatter:on
+    assertEntriesInCamelAggregationForRefId(refId, 0);
 
     try (final JMSContext context = connectionFactory().createContext();
         final JMSConsumer inConsumer =

@@ -38,12 +38,12 @@ public class MyRoute extends RouteBuilder {
     onException(Exception.class)
         .process(exchange -> {
           if (!getContext().isSuspended() && !getContext().isSuspending()) {
-            Log.warn("Shutting down due to exception",
+            Log.warn("Shutting down due to",
                 exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class));
             executor.execute(getContext()::suspend);
           }
         })
-        .handled(false)
+        .handled(true)
         .markRollbackOnly();
 
     from(
