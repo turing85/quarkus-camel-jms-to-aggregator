@@ -87,6 +87,7 @@
         <quarkus.native.compression.level>5</quarkus.native.compression.level>
         <quarkus.native.container-build>true</quarkus.native.container-build>
         <quarkus.package.jar.add-runner-suffix>false</quarkus.package.jar.add-runner-suffix>
+        <quarkus.package.jar.user-configured-ignored-entries>db/init.sql</quarkus.package.jar.user-configured-ignored-entries>
     </properties>
 
     <url>https://github.com/turing85/quarkus-camel-jms-to-aggregator</url>
@@ -588,6 +589,16 @@
         <dependency>
             <groupId>org.apache.camel.quarkus</groupId>
             <artifactId>camel-quarkus-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.artemis</groupId>
+            <artifactId>quarkus-test-artemis</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -16,7 +16,9 @@ import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 
 import io.agroal.api.AgroalDataSource;
+import io.quarkus.artemis.test.ArtemisTestResource;
 import io.quarkus.logging.Log;
+import io.quarkus.test.common.WithTestResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.camel.CamelContext;
@@ -24,6 +26,7 @@ import org.apache.camel.quarkus.test.CamelQuarkusTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 
+@WithTestResource(ArtemisTestResource.class)
 @Getter(AccessLevel.PROTECTED)
 class TestBase extends CamelQuarkusTestSupport {
   public static final String IN_QUEUE = "in::in";
