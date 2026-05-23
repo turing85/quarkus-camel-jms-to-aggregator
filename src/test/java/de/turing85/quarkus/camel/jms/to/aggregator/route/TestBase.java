@@ -24,7 +24,6 @@ import io.restassured.RestAssured;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.camel.CamelContext;
 import org.apache.camel.quarkus.test.CamelQuarkusTestSupport;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
@@ -40,9 +39,6 @@ class TestBase extends CamelQuarkusTestSupport {
   @Inject
   @SuppressWarnings("CdiInjectionPointsInspection")
   ConnectionFactory connectionFactory;
-
-  @Inject
-  CamelContext camelContext;
 
   @Inject
   @SuppressWarnings("CdiInjectionPointsInspection")

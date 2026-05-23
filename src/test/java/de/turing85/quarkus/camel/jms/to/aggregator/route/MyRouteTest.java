@@ -9,13 +9,11 @@ import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 
 import io.quarkus.test.junit.QuarkusTest;
-import lombok.Getter;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@Getter
 class MyRouteTest extends TestBase {
   @Test
   void goodTest() throws Exception {
